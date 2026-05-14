@@ -1,6 +1,12 @@
 import os
 import socket
+import sys
 from pathlib import Path
+
+if sys.stdout.encoding is None or sys.stdout.encoding.lower() != "utf-8":
+    sys.stdout.reconfigure(encoding="utf-8")
+if sys.stderr.encoding is None or sys.stderr.encoding.lower() != "utf-8":
+    sys.stderr.reconfigure(encoding="utf-8")
 
 from aes_socket_utils import build_data_packet, build_key_packet, encrypt_aes_cbc
 
@@ -20,7 +26,7 @@ def get_plaintext() -> bytes:
         return Path(INPUT_FILE).read_bytes()
     if MESSAGE_ENV is not None:
         return MESSAGE_ENV.encode("utf-8")
-    return input("Nhập bản tin: ").encode("utf-8")
+    return input("Nhap ban tin: ").encode("utf-8")
 
 
 def send_packet(host: str, port: int, packet: bytes) -> None:
