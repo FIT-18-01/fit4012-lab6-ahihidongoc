@@ -24,13 +24,14 @@ OUTPUT_FILE = os.getenv("OUTPUT_FILE", "")
 LOG_FILE = os.getenv("RECEIVER_LOG_FILE", "")
 
 
-def receive_key_packet() -> bytes:
+def receive_key_packet(status_line: str) -> bytes:
     """Listen on KEY_PORT and receive key_length + key + iv."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.settimeout(TIMEOUT)
         server.bind((HOST, KEY_PORT))
         server.listen(1)
+        print(status_line)
         conn, _ = server.accept()
 
         with conn:
@@ -41,13 +42,14 @@ def receive_key_packet() -> bytes:
             return key_len_header + rest
 
 
-def receive_data_packet() -> bytes:
+def receive_data_packet(status_line: str) -> bytes:
     """Listen on DATA_PORT and receive length + ciphertext."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.settimeout(TIMEOUT)
         server.bind((HOST, DATA_PORT))
         server.listen(1)
+        print(status_line)
         conn, _ = server.accept()
 
         with conn:
@@ -62,10 +64,9 @@ def main() -> None:
     lines = []
 
     line = f"[*] Receiver đang lắng nghe kênh khóa tại {HOST}:{KEY_PORT}"
-    print(line)
     lines.append(line)
 
-    key_packet = receive_key_packet()
+    key_packet = receive_key_packet(line)
     key, iv = parse_key_packet(key_packet)
 
     line = "[+] Đã nhận AES key và IV."
@@ -73,10 +74,9 @@ def main() -> None:
     lines.append(line)
 
     line = f"[*] Receiver đang lắng nghe kênh dữ liệu tại {HOST}:{DATA_PORT}"
-    print(line)
     lines.append(line)
 
-    data_packet = receive_data_packet()
+    data_packet = receive_data_packet(line)
     length = parse_length_header(data_packet[:LENGTH_HEADER_SIZE])
     ciphertext = data_packet[LENGTH_HEADER_SIZE:]
 
@@ -95,8 +95,8 @@ def main() -> None:
         f"[+] Bản tin gốc: {message}",
     ])
 
-    print("[+] Đã giải mã thành công.")
-    print(f"[+] Bản tin gốc: {message}")
+    print("[+] Đã giải mã thành công. - receiver.py:98")
+    print(f"[+] Bản tin gốc: {message} - receiver.py:99")
 
     if OUTPUT_FILE:
         Path(OUTPUT_FILE).write_bytes(plaintext)
